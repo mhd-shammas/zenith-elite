@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user profile",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "avatar": { "type": "string" },
+        "verified": { "type": "boolean" },
+        "plan": { "type": "string", "enum": ["Basic", "Diamond"] },
+        "role": { "type": "string", "enum": ["Customer", "Admin"] }
+      },
+      "required": ["id", "name", "email", "verified", "plan", "role"]
+    },
+    "Car": {
+      "title": "Car",
+      "description": "Vehicle listing details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "make": { "type": "string" },
+        "model": { "type": "string" },
+        "year": { "type": "number" },
+        "price": { "type": "number" },
+        "mileage": { "type": "number" },
+        "location": { "type": "string" },
+        "image": { "type": "string" },
+        "type": { "type": "string" },
+        "transmission": { "type": "string" },
+        "fuelType": { "type": "string" },
+        "description": { "type": "string" },
+        "vin": { "type": "string" },
+        "status": { "type": "string", "enum": ["Available", "Pending", "Sold"] },
+        "sellerName": { "type": "string" },
+        "sellerId": { "type": "string" }
+      },
+      "required": ["make", "model", "year", "price", "status", "sellerId"]
+    },
+    "ListingRequest": {
+      "title": "Listing Request",
+      "description": "Request for admin approval",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "carId": { "type": "string" },
+        "sellerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] },
+        "timestamp": { "type": "string" },
+        "type": { "type": "string", "enum": ["Sell", "VerifyAccount"] }
+      },
+      "required": ["sellerId", "status", "timestamp", "type"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "cars/{carId}": {
+      "schema": "Car",
+      "description": "Vehicle listings"
+    },
+    "requests/{requestId}": {
+      "schema": "ListingRequest",
+      "description": "Admin review requests"
+    }
+  }
+}

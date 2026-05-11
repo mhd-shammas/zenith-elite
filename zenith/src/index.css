@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Spacing */
+  --spacing-sidebar-width: 280px;
+  --spacing-gutter: 24px;
+  --spacing-margin-page: 40px;
+  --spacing-stack-sm: 8px;
+  --spacing-stack-md: 16px;
+  --spacing-stack-lg: 32px;
+
+  /* Colors */
+  --color-primary-navy: #0F172A;
+  --color-secondary-slate: #64748B;
+  --color-accent-blue: #2563EB;
+  
+  --color-surface-bg: #F8FAFC;
+  --color-surface-card: #FFFFFF;
+  --color-surface-border: #E2E8F0;
+
+  --color-status-verified: #10B981;
+  --color-status-pending: #F59E0B;
+  --color-status-rejected: #EF4444;
+}
+
+@layer base {
+  body {
+    @apply font-sans bg-surface-bg text-primary-navy antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary-navy text-white px-6 py-3 rounded-md font-bold transition-all hover:bg-slate-800 active:scale-95 flex items-center justify-center gap-2;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-primary-navy border border-surface-border px-6 py-3 rounded-md font-bold transition-all hover:bg-slate-50 active:scale-95 flex items-center justify-center gap-2;
+  }
+
+  .btn-ghost {
+    @apply text-primary-navy px-4 py-2 rounded-md font-medium transition-all hover:bg-slate-100 flex items-center justify-center gap-2;
+  }
+
+  .card {
+    @apply bg-white border border-surface-border rounded-lg shadow-sm overflow-hidden;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 bg-white border border-surface-border rounded-md text-sm outline-none transition-all focus:ring-2 focus:ring-primary-navy focus:border-transparent;
+  }
+
+  .badge {
+    @apply px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider;
+  }
+
+  .badge-verified {
+    @apply bg-emerald-50 text-emerald-700 border border-emerald-100;
+  }
+
+  .badge-pending {
+    @apply bg-amber-50 text-amber-700 border border-amber-100;
+  }
+
+  .badge-rejected {
+    @apply bg-rose-50 text-rose-700 border border-rose-100;
+  }
+}

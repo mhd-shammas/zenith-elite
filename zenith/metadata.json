@@ -1,0 +1,8 @@
+{
+  "name": "ZENITH - Elite Automotive Exchange",
+  "description": "The world's most prestigious luxury vehicle marketplace. Featuring end-to-end encrypted transactions, AI-powered valuations, and elite inventory management.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": []
+}

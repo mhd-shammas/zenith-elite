@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reuseable helper functions
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    // Admin check: assumes admins are stored in a specific collection
+    function isAdmin() { 
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Admin';
+    }
+
+    // 1. Users Collection
+    match /users/{userId} {
+      function isValidUser(data) {
+        return data.keys().hasAll(['id', 'name', 'email', 'verified', 'plan', 'role']) &&
+               data.keys().size() == 6 &&
+               data.id is string && data.id == userId &&
+               data.name is string && data.name.size() <= 100 &&
+               data.email is string && data.email.size() <= 100 &&
+               data.verified is bool &&
+               data.plan in ['Basic', 'Diamond'] &&
+               data.role in ['Customer', 'Admin'];
+      }
+
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      
+      allow create: if isSignedIn() && request.auth.uid == userId && isValidUser(incoming()) && incoming().role == 'Customer';
+      
+      allow update: if isSignedIn() && (
+        // Admin can update anything except ID
+        (isAdmin() && incoming().id == existing().id && isValidUser(incoming())) ||
+        // User can update limited fields
+        (request.auth.uid == userId && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['name', 'avatar', 'plan']) && 
+         isValidUser(incoming()))
+      );
+    }
+
+    // 2. Cars Collection
+    match /cars/{carId} {
+      function isValidCar(data) {
+        return data.keys().hasAll(['make', 'model', 'year', 'price', 'status', 'sellerId']) &&
+               data.make is string && data.make.size() <= 50 &&
+               data.model is string && data.model.size() <= 50 &&
+               data.year is number && data.year >= 1900 &&
+               data.price is number && data.price >= 0 &&
+               data.status in ['Available', 'Pending', 'Sold'] &&
+               data.sellerId is string;
+      }
+
+      allow read: if true; // Public listings
+      
+      allow create: if isVerified() && isValidCar(incoming()) && incoming().sellerId == request.auth.uid && incoming().status == 'Pending';
+      
+      allow update: if isSignedIn() && (
+        isAdmin() ||
+        (existing().sellerId == request.auth.uid && 
+         incoming().diff(existing()).affectedKeys().hasOnly(['price', 'description', 'image']) &&
+         isValidCar(incoming()))
+      );
+      
+      allow delete: if isAdmin() || (existing().sellerId == request.auth.uid && existing().status == 'Pending');
+    }
+
+    // 3. Requests Collection
+    match /requests/{requestId} {
+      function isValidRequest(data) {
+        return data.keys().hasAll(['sellerId', 'status', 'timestamp', 'type']) &&
+               data.sellerId is string &&
+               data.status in ['Pending', 'Approved', 'Rejected'] &&
+               data.timestamp is string &&
+               data.type in ['Sell', 'VerifyAccount'];
+      }
+
+      allow get: if isSignedIn() && (request.auth.uid == existing().sellerId || isAdmin());
+      allow list: if isAdmin() || (isSignedIn() && resource.data.sellerId == request.auth.uid);
+      
+      allow create: if isVerified() && isValidRequest(incoming()) && incoming().sellerId == request.auth.uid && incoming().status == 'Pending';
+      
+      allow update: if isAdmin() && isValidRequest(incoming());
+      
+      allow delete: if isAdmin();
+    }
+    
+    // Connection test collection
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}
